@@ -90,6 +90,7 @@ Data is sourced from the **RiceQuant API**. Large data files are excluded from t
 | `hk_dividendyield.h5` | ~170 MB | Monthly dividend yield |
 | `hk_shares.h5` | ~170 MB | Monthly shares outstanding |
 
+datalink:https://cuhko365-my.sharepoint.com/:f:/g/personal/123090233_link_cuhk_edu_cn/IgBHRwntAO7cRIBZtWRhcMurAdhq4vZs-Cs88Jf0TGcWclk?e=wixvCV
 ## Tech Stack
 
 Python 3 · pandas · numpy · matplotlib · scipy · statsmodels · Jupyter notebooks

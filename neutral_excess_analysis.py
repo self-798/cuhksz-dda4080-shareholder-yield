@@ -3,6 +3,16 @@ warnings.filterwarnings('ignore')
 os.makedirs('pict', exist_ok=True)
 import matplotlib
 matplotlib.use('Agg')
+
+# Chinese font support
+import matplotlib.font_manager as fm
+for f in fm.fontManager.ttflist:
+    if f.name == 'Microsoft YaHei':
+        fm.fontManager.addfont(f.fname)
+        break
+matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 
@@ -181,7 +191,7 @@ def calc_metrics(returns):
     ann_ret = returns.mean() * 12
     ann_vol = returns.std() * np.sqrt(12)
     sharpe = ann_ret / ann_vol if ann_vol != 0 else np.nan
-    cum_ret = (1 + returns).cumprod()
+    cum_ret = 1 + returns.cumsum()
     max_dd = (cum_ret / cum_ret.cummax().clip(lower=1.0) - 1).min()
     return ann_ret, ann_vol, sharpe, max_dd
 

@@ -3,6 +3,16 @@ import pandas as pd, numpy as np, json, os, warnings
 warnings.filterwarnings('ignore')
 os.makedirs('pict', exist_ok=True)
 import matplotlib; matplotlib.use('Agg')
+
+# Chinese font support
+import matplotlib.font_manager as fm
+for f in fm.fontManager.ttflist:
+    if f.name == 'Microsoft YaHei':
+        fm.fontManager.addfont(f.fname)
+        break
+matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
+
 import matplotlib.pyplot as plt, matplotlib.ticker as mtick
 import statsmodels.api as sm
 
@@ -323,7 +333,7 @@ for raw_n, neut_n, label in [
 # Plots
 fig, axes = plt.subplots(1, 2, figsize=(18, 7))
 for ax, pref, title in zip(axes, ['B_', 'C_'], ['Strategy B (Trim)', 'Strategy C (Trim+LowVol)']):
-    cum_hsi = (1 + hsi_ret).cumprod()
+    cum_hsi = 1 + hsi_ret.cumsum()
     cidx = bt[f'{pref}Raw'].index.intersection(hsi_ret.index)
     ax.plot(cidx.to_timestamp(), cum_hsi.reindex(cidx), label='HSI基准', color='gray', alpha=0.5)
     for suf, label, color, ls in [
@@ -331,7 +341,7 @@ for ax, pref, title in zip(axes, ['B_', 'C_'], ['Strategy B (Trim)', 'Strategy C
         ('HSICS_Ind', 'HSICS行业中性', 'red', '--'),
         ('HSICS_IndSize', 'HSICS行业+市值中性', 'green', ':')
     ]:
-        b = bt[f'{pref}{suf}']; cum = (1 + b).cumprod()
+        b = bt[f'{pref}{suf}']; cum = 1 + b.cumsum()
         ax.plot(cum.index.to_timestamp(), cum.values, label=label, color=color, linestyle=ls, linewidth=1.5)
     ax.set_title(title, fontsize=13, fontweight='bold'); ax.legend(fontsize=9); ax.grid(True, alpha=0.3)
 plt.tight_layout(); plt.savefig('pict/v4_plot_hsics_cumulative.png', dpi=150, bbox_inches='tight'); plt.close()

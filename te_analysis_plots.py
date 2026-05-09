@@ -3,6 +3,16 @@ import pandas as pd, numpy as np, warnings, os
 warnings.filterwarnings('ignore')
 os.makedirs('pict', exist_ok=True)
 import matplotlib; matplotlib.use('Agg')
+
+# Chinese font support
+import matplotlib.font_manager as fm
+for f in fm.fontManager.ttflist:
+    if f.name == 'Microsoft YaHei':
+        fm.fontManager.addfont(f.fname)
+        break
+matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
+
 import matplotlib.pyplot as plt, matplotlib.ticker as mtick
 import statsmodels.api as sm
 

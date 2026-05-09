@@ -10,8 +10,18 @@ each month, then use normalized scores for ranking.
 
 import pandas as pd
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+
+# Chinese font support
+import matplotlib.font_manager as fm
+for f in fm.fontManager.ttflist:
+    if f.name == 'Microsoft YaHei':
+        fm.fontManager.addfont(f.fname)
+        break
+matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
 import warnings
 import re
 
@@ -442,7 +452,7 @@ def calc_metrics(returns):
     ann_ret = returns.mean() * 12
     ann_vol = returns.std() * np.sqrt(12)
     sharpe = ann_ret / ann_vol if ann_vol != 0 else np.nan
-    cum_ret = (1 + returns).cumprod()
+    cum_ret = 1 + returns.cumsum()
     max_dd = (cum_ret / cum_ret.cummax().clip(lower=1.0) - 1).min()
     total_ret = cum_ret.iloc[-1] if len(cum_ret) > 0 else 1.0
     # Additional metrics
@@ -557,10 +567,10 @@ print("=" * 70)
 # --- Plot 1: Cumulative Returns (B raw vs B neutral) ---
 fig, axes = plt.subplots(1, 2, figsize=(16, 7))
 
-cum_B_raw = (1 + bt_B_raw_eq).cumprod()
-cum_B_neutral = (1 + bt_B_neutral_eq).cumprod()
-cum_C_raw = (1 + bt_C_raw_eq).cumprod()
-cum_C_neutral = (1 + bt_C_neutral_eq).cumprod()
+cum_B_raw = 1 + bt_B_raw_eq.cumsum()
+cum_B_neutral = 1 + bt_B_neutral_eq.cumsum()
+cum_C_raw = 1 + bt_C_raw_eq.cumsum()
+cum_C_neutral = 1 + bt_C_neutral_eq.cumsum()
 
 all_idx_B = cum_B_raw.index.intersection(cum_B_neutral.index)
 all_idx_C = cum_C_raw.index.intersection(cum_C_neutral.index)
@@ -609,7 +619,7 @@ for ax, raw_series, neutral_series, raw_label, neutral_label, raw_color, neutral
         (raw_series, raw_label, raw_color),
         (neutral_series, neutral_label, neutral_color),
     ]:
-        cum = (1 + series).cumprod()
+        cum = 1 + series.cumsum()
         dd = cum / cum.cummax().clip(lower=1.0) - 1
         ax.plot(dd.index.to_timestamp(), dd.values, label=label, color=color, linewidth=1.8)
     ax.set_title(title, fontsize=12, fontweight='bold')
@@ -757,15 +767,15 @@ b_raw_ann = bt_B_raw_eq.mean() * 12
 b_neutral_ann = bt_B_neutral_eq.mean() * 12
 b_raw_sharpe = b_raw_ann / (bt_B_raw_eq.std() * np.sqrt(12))
 b_neutral_sharpe = b_neutral_ann / (bt_B_neutral_eq.std() * np.sqrt(12))
-cum_B_raw_end = (1 + bt_B_raw_eq).cumprod().iloc[-1]
-cum_B_neutral_end = (1 + bt_B_neutral_eq).cumprod().iloc[-1]
+cum_B_raw_end = 1 + bt_B_raw_eq.cumsum().iloc[-1]
+cum_B_neutral_end = 1 + bt_B_neutral_eq.cumsum().iloc[-1]
 
 c_raw_ann = bt_C_raw_eq.mean() * 12
 c_neutral_ann = bt_C_neutral_eq.mean() * 12
 c_raw_sharpe = c_raw_ann / (bt_C_raw_eq.std() * np.sqrt(12))
 c_neutral_sharpe = c_neutral_ann / (bt_C_neutral_eq.std() * np.sqrt(12))
-cum_C_raw_end = (1 + bt_C_raw_eq).cumprod().iloc[-1]
-cum_C_neutral_end = (1 + bt_C_neutral_eq).cumprod().iloc[-1]
+cum_C_raw_end = 1 + bt_C_raw_eq.cumsum().iloc[-1]
+cum_C_neutral_end = 1 + bt_C_neutral_eq.cumsum().iloc[-1]
 
 print(f"""
   STRATEGY B (Pure SY + extreme trim):

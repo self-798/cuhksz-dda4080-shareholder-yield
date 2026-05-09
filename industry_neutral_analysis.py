@@ -11,8 +11,18 @@
 
 import pandas as pd
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+
+# Chinese font support
+import matplotlib.font_manager as fm
+for f in fm.fontManager.ttflist:
+    if f.name == 'Microsoft YaHei':
+        fm.fontManager.addfont(f.fname)
+        break
+matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
 import statsmodels.api as sm
 import warnings
 import json
@@ -467,7 +477,7 @@ def calc_metrics(returns):
     ann_ret = returns.mean() * 12
     ann_vol = returns.std() * np.sqrt(12)
     sharpe = ann_ret / ann_vol if ann_vol != 0 else np.nan
-    cum_ret = (1 + returns).cumprod()
+    cum_ret = 1 + returns.cumsum()
     max_dd = (cum_ret / cum_ret.cummax().clip(lower=1.0) - 1).min()
     total_ret = cum_ret.iloc[-1] if len(cum_ret) > 0 else 1.0
     # Calmar ratio
@@ -750,7 +760,7 @@ for name, series, color, ls in [
     ('C_neutral', bt_C_neu_eq, 'lime', '--'),
     ('HSI', hsi_ret_series, 'gray', ':'),
 ]:
-    cum = (1 + series).cumprod()
+    cum = 1 + series.cumsum()
     dd = cum / cum.cummax().clip(lower=1.0) - 1
     ax.plot(dd.index.to_timestamp(), dd.values, label=name, color=color,
             linewidth=2.0 if 'neutral' in name else 1.2, linestyle=ls, alpha=0.8)

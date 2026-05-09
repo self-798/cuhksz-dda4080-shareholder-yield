@@ -6,6 +6,16 @@ warnings.filterwarnings('ignore')
 os.makedirs('pict', exist_ok=True)
 import matplotlib
 matplotlib.use('Agg')
+
+# Chinese font support
+import matplotlib.font_manager as fm
+for f in fm.fontManager.ttflist:
+    if f.name == 'Microsoft YaHei':
+        fm.fontManager.addfont(f.fname)
+        break
+matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import statsmodels.api as sm
@@ -256,7 +266,7 @@ def calc_metrics(returns):
     ann_ret = returns.mean() * 12
     ann_vol = returns.std() * np.sqrt(12)
     sharpe = ann_ret / ann_vol if ann_vol != 0 else np.nan
-    cum_ret = (1 + returns).cumprod()
+    cum_ret = 1 + returns.cumsum()
     max_dd = (cum_ret / cum_ret.cummax().clip(lower=1.0) - 1).min()
     return ann_ret, ann_vol, sharpe, max_dd, cum_ret.iloc[-1]
 
@@ -364,14 +374,14 @@ linestyles = {'Raw': '-', 'SizeNeut': '--', 'ValueNeut': '-.', 'SizeValueNeut': 
 
 for ax, prefix, title in zip(axes, ['B_', 'C_'], ['Strategy B (Trim)', 'Strategy C (Trim+LowVol)']):
     # HSI
-    cum_hsi = (1 + hsi_ret).cumprod()
+    cum_hsi = 1 + hsi_ret.cumsum()
     common_idx = bt_dict[f'{prefix}Raw'].index.intersection(hsi_ret.index)
     ax.plot(common_idx.to_timestamp(), cum_hsi.reindex(common_idx), label='HSI', color='gray', linewidth=1, alpha=0.6)
 
     for suffix, label, color in [('Raw', 'Raw (原始)', 'blue'), ('SizeNeut', 'Size-Neutral', 'red'),
                                    ('ValueNeut', 'Value-Neutral', 'green'), ('SizeValueNeut', 'Size+Value-Neutral', 'purple')]:
         bt = bt_dict[f'{prefix}{suffix}']
-        cum = (1 + bt).cumprod()
+        cum = 1 + bt.cumsum()
         ax.plot(cum.index.to_timestamp(), cum.values, label=label, color=color,
                 linestyle=linestyles[suffix], linewidth=1.5)
 
