@@ -204,7 +204,7 @@ for i in range(len(table_data[0])): tbl[0, i].set_facecolor('#4472C4'); tbl[0, i
 for j in [2]:  # Highlight B row
     for i in range(len(table_data[0])): tbl[j, i].set_facecolor('#D6E4F0')
 ax.set_title('策略绩效总览表', fontsize=16, fontweight='bold', pad=20)
-plt.tight_layout(); plt.savefig('pict/v4_plot_05.png', dpi=150, bbox_inches='tight'); plt.close(); print("  05")
+plt.tight_layout(); plt.savefig('pict/v4_plot_05_table.png', dpi=150, bbox_inches='tight'); plt.close(); print("  05_table")
 
 # Neutralization summary
 fig, ax = plt.subplots(figsize=(14, 6)); ax.axis('off')
@@ -221,7 +221,7 @@ tbl2 = ax.table(cellText=neut_data, cellLoc='center', loc='center')
 tbl2.auto_set_font_size(False); tbl2.set_fontsize(9)
 for i in range(len(neut_data[0])): tbl2[0, i].set_facecolor('#4472C4'); tbl2[0, i].set_text_props(color='white', fontweight='bold')
 ax.set_title('所有中性化方法效果汇总', fontsize=16, fontweight='bold', pad=20)
-plt.tight_layout(); plt.savefig('pict/v4_plot_06.png', dpi=150, bbox_inches='tight'); plt.close(); print("  06")
+plt.tight_layout(); plt.savefig('pict/v4_plot_06_table.png', dpi=150, bbox_inches='tight'); plt.close(); print("  06_table")
 
 # Extreme value characterization
 fig, ax = plt.subplots(figsize=(14, 8)); ax.axis('off')
@@ -241,7 +241,7 @@ tbl3 = ax.table(cellText=ext_data, cellLoc='center', loc='center')
 tbl3.auto_set_font_size(False); tbl3.set_fontsize(10)
 for i in range(len(ext_data[0])): tbl3[0, i].set_facecolor('#C00000'); tbl3[0, i].set_text_props(color='white', fontweight='bold')
 ax.set_title('被剔除极端值股票特征总览', fontsize=16, fontweight='bold', pad=20)
-plt.tight_layout(); plt.savefig('pict/v4_plot_07.png', dpi=150, bbox_inches='tight'); plt.close(); print("  07")
+plt.tight_layout(); plt.savefig('pict/v4_plot_07_table.png', dpi=150, bbox_inches='tight'); plt.close(); print("  07_table")
 
 # Stock count sensitivity
 fig, axes = plt.subplots(1, 2, figsize=(16, 6))
@@ -260,4 +260,4 @@ for ax, dat, title in zip(axes, [b_data, c_data], ['策略B: 纯SY+极端剔除'
 plt.tight_layout(); plt.savefig('pict/v4_plot_te_ir_vs_n.png', dpi=150, bbox_inches='tight'); plt.close(); print("  TE")
 
 print("\n=== ALL PLOTS REGENERATED WITH CHINESE FONTS ===")
-print("v4_plot_01,02,03,05,06,07,08 + ff3/te plots")
+print("v4_plot_01,02,03,05_table,06_table,07_table,08 + ff3/te plots")

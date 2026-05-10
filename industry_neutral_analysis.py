@@ -538,11 +538,11 @@ print(df_cw.to_string())
 all_idx = bt_B_raw_eq.index.intersection(bt_B_neu_eq.index).intersection(
     bt_C_raw_eq.index).intersection(bt_C_neu_eq.index).intersection(hsi_ret_series.index)
 
-cum_B_raw = (1 + bt_B_raw_eq.reindex(all_idx)).cumprod()
-cum_B_neu = (1 + bt_B_neu_eq.reindex(all_idx)).cumprod()
-cum_C_raw = (1 + bt_C_raw_eq.reindex(all_idx)).cumprod()
-cum_C_neu = (1 + bt_C_neu_eq.reindex(all_idx)).cumprod()
-cum_hsi = (1 + hsi_ret_series.reindex(all_idx)).cumprod()
+cum_B_raw = 1 + bt_B_raw_eq.reindex(all_idx).cumsum()
+cum_B_neu = 1 + bt_B_neu_eq.reindex(all_idx).cumsum()
+cum_C_raw = 1 + bt_C_raw_eq.reindex(all_idx).cumsum()
+cum_C_neu = 1 + bt_C_neu_eq.reindex(all_idx).cumsum()
+cum_hsi = 1 + hsi_ret_series.reindex(all_idx).cumsum()
 
 # ---- Figure 1: Raw B vs Neutral B ----
 fig, ax = plt.subplots(figsize=(14, 7))
@@ -609,30 +609,37 @@ print(f"Saved: {PICT_DIR}/v4_plot_industry_all4.png")
 # ========== 10. Excess Return Curves ==========
 fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
-excess_B_neu = cum_B_neu - cum_hsi
-excess_B_raw = cum_B_raw - cum_hsi
-excess_C_neu = cum_C_neu - cum_hsi
-excess_C_raw = cum_C_raw - cum_hsi
+# Excess = strategy return - HSI return, then additive cumulative
+common_idx = bt_B_raw_eq.index.intersection(hsi_ret_series.index)
+exc_B_raw = bt_B_raw_eq.reindex(common_idx) - hsi_ret_series.reindex(common_idx)
+exc_B_neu = bt_B_neu_eq.reindex(common_idx) - hsi_ret_series.reindex(common_idx)
+exc_C_raw = bt_C_raw_eq.reindex(common_idx) - hsi_ret_series.reindex(common_idx)
+exc_C_neu = bt_C_neu_eq.reindex(common_idx) - hsi_ret_series.reindex(common_idx)
 
-idx_ts = all_idx.to_timestamp()
+cum_exc_B_raw = 1 + exc_B_raw.cumsum()
+cum_exc_B_neu = 1 + exc_B_neu.cumsum()
+cum_exc_C_raw = 1 + exc_C_raw.cumsum()
+cum_exc_C_neu = 1 + exc_C_neu.cumsum()
 
-axes[0].plot(idx_ts, excess_B_raw, label='B: Raw (excess over HSI)',
+idx_ts = common_idx.to_timestamp()
+
+axes[0].plot(idx_ts, cum_exc_B_raw.values, label='B: Raw (excess over HSI)',
              color='blue', linewidth=1.5)
-axes[0].plot(idx_ts, excess_B_neu, label=r'B$_{neutral}$ (excess over HSI)',
+axes[0].plot(idx_ts, cum_exc_B_neu.values, label=r'B$_{neutral}$ (excess over HSI)',
              color='cyan', linewidth=2.0, linestyle='--')
-axes[0].axhline(y=0, color='black', linewidth=0.5, linestyle='--')
+axes[0].axhline(y=1, color='black', linewidth=0.5, linestyle='--')
 axes[0].set_title('Excess Return: Strategy B Raw vs Neutral', fontsize=12, fontweight='bold')
-axes[0].set_ylabel('Cumulative Excess Return', fontsize=10)
+axes[0].set_ylabel('Cumulative Excess (1 + cumsum)', fontsize=10)
 axes[0].legend(fontsize=9)
 axes[0].grid(True, alpha=0.3)
 
-axes[1].plot(idx_ts, excess_C_raw, label='C: Raw (excess over HSI)',
+axes[1].plot(idx_ts, cum_exc_C_raw.values, label='C: Raw (excess over HSI)',
              color='green', linewidth=1.5)
-axes[1].plot(idx_ts, excess_C_neu, label=r'C$_{neutral}$ (excess over HSI)',
+axes[1].plot(idx_ts, cum_exc_C_neu.values, label=r'C$_{neutral}$ (excess over HSI)',
              color='lime', linewidth=2.0, linestyle='--')
-axes[1].axhline(y=0, color='black', linewidth=0.5, linestyle='--')
+axes[1].axhline(y=1, color='black', linewidth=0.5, linestyle='--')
 axes[1].set_title('Excess Return: Strategy C Raw vs Neutral', fontsize=12, fontweight='bold')
-axes[1].set_ylabel('Cumulative Excess Return', fontsize=10)
+axes[1].set_ylabel('Cumulative Excess (1 + cumsum)', fontsize=10)
 axes[1].legend(fontsize=9)
 axes[1].grid(True, alpha=0.3)
 
@@ -640,6 +647,31 @@ plt.tight_layout()
 plt.savefig(f'{PICT_DIR}/v4_plot_industry_excess.png', dpi=150, bbox_inches='tight')
 plt.close()
 print(f"Saved: {PICT_DIR}/v4_plot_industry_excess.png")
+
+# ---- Excess Drawdown Chart ----
+fig, ax = plt.subplots(figsize=(14, 6))
+
+for name, exc_series, color, ls in [
+    ('B: Raw', exc_B_raw, 'blue', '-'),
+    ('B_neutral', exc_B_neu, 'cyan', '--'),
+    ('C: Raw', exc_C_raw, 'green', '-'),
+    ('C_neutral', exc_C_neu, 'lime', '--'),
+]:
+    cum_exc = 1 + exc_series.cumsum()
+    dd_exc = cum_exc / cum_exc.cummax().clip(lower=1.0) - 1
+    ax.plot(dd_exc.index.to_timestamp(), dd_exc.values, label=name, color=color,
+            linewidth=1.5, linestyle=ls, alpha=0.85)
+
+ax.set_title('Excess Return Drawdown (vs HSI)', fontsize=14, fontweight='bold')
+ax.set_ylabel('Excess Drawdown', fontsize=12)
+ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+ax.legend(fontsize=10, loc='lower left')
+ax.grid(True, alpha=0.3)
+ax.axhline(y=0, color='black', linewidth=0.5)
+plt.tight_layout()
+plt.savefig(f'{PICT_DIR}/v4_plot_industry_excess_drawdown.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"Saved: {PICT_DIR}/v4_plot_industry_excess_drawdown.png")
 
 
 # ========== 11. Industry Exposure Analysis ==========
